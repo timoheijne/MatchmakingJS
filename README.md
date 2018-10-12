@@ -13,6 +13,7 @@ Also because of its Non-Blocking IO operations makes this quite desirable for la
 - Get more experience with NodeJS and networking programming
 - Learn Redis
 - Write a very nice portfolio piece that I can possibly use for future projects
+- Optional but preferable: Learn how to unit test
 
 
 ## Planning 
