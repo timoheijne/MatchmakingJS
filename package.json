@@ -1,0 +1,22 @@
+{
+  "name": "matchmakingjs",
+  "version": "0.0.1",
+  "description": "A matchmaking system written in NodeJS",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lghenk/MatchmakingJS.git"
+  },
+  "keywords": [
+    "Matchmaking"
+  ],
+  "author": "Timo Heijne",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/lghenk/MatchmakingJS/issues"
+  },
+  "homepage": "https://github.com/lghenk/MatchmakingJS#readme"
+}
