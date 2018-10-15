@@ -4,7 +4,7 @@
   "description": "A matchmaking system written in NodeJS",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -18,5 +18,15 @@
   "bugs": {
     "url": "https://github.com/lghenk/MatchmakingJS/issues"
   },
-  "homepage": "https://github.com/lghenk/MatchmakingJS#readme"
+  "homepage": "https://github.com/lghenk/MatchmakingJS#readme",
+  "dependencies": {
+    "dotenv": "^6.1.0",
+    "pino": "^5.7.0",
+    "pino-pretty": "^2.2.2",
+    "pino-tee": "^0.2.2",
+    "redis": "^2.8.0"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
 }
