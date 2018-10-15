@@ -1,6 +1,9 @@
 # MatchmakingJS
 A matchmaking system written in NodeJS for my personal development and it also doubles as a school assignment 
 
+![Build Image](https://travis-ci.org/lghenk/MatchmakingJS.svg?branch=master)
+![Dependencies](https://david-dm.org/lghenk/MatchmakingJS.svg)
+
 ## Features
 - Da
 
