@@ -5,6 +5,8 @@ const Dispatcher    = require('./dispatcher/Dispatcher');
 /* 
  * Keeping in mind the idea that we might need to open different sockets in the future
  */
+
+// TODO: Add encryption option
 class SocketService extends Dispatcher {
     constructor(port) {
         super()
@@ -23,6 +25,7 @@ class SocketService extends Dispatcher {
             socket.on('data', (data) => {
                 // Client send data, Emit a callback for this socket
                 console.log(data);
+                // TODO: Partially Parse incomming data and emit to dispatcher
             })
 
             socket.on('close', () => {

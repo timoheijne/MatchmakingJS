@@ -1,8 +1,8 @@
 const assert = require('assert');
-const Dispatcher = require('./../controllers/dispatcher/Dispatcher')
+const Dispatcher = require('../controllers/dispatcher/Dispatcher')
 
-describe('Dispatcher', function () {
-    it('should fire the event test once', function (done) {
+describe('Dispatcher', () => {
+    it('should fire the event test once using .on', (done) => {
         const testDispatch = new Dispatcher();
         testDispatch.on('test', () => {
             done();
@@ -11,7 +11,22 @@ describe('Dispatcher', function () {
         testDispatch.emit('test');
     });
 
-    it('shouldnt fire the event test', function (done) {
+    it('should fire the event 5 times using .on', () => {
+        const testDispatch = new Dispatcher();
+        let num = 0;
+        let test = () => {
+            num += 1;
+        }
+        testDispatch.on('test', test)
+        
+        for (let i = 0; i < 5; i++) {
+            testDispatch.emit('test');
+        }
+
+        assert.equal(num, 5)
+    });
+
+    it('should\'nt fire the event test after calling .off', (done) => {
         const testDispatch = new Dispatcher();
         let test = () => {
             done('Event was fired');
@@ -23,7 +38,7 @@ describe('Dispatcher', function () {
         done();
     });
 
-    it('should fire event only once using the method .once', function () {
+    it('should fire the event only once using the method .once', () => {
         const testDispatch = new Dispatcher();
         let num = 0;
         let test = () => {
