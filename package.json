@@ -4,7 +4,8 @@
   "description": "A matchmaking system written in NodeJS",
   "main": "app.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "run:dev": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,8 @@
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "mocha": "^5.2.0"
+    "mitm": "^1.4.0",
+    "mocha": "^5.2.0",
+    "nodemon": "^1.18.4"
   }
 }

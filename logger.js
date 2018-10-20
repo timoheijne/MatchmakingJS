@@ -31,9 +31,6 @@ logThrough.on('data', (data) => {
     console.log(JSON.parse(data.toString().trim()).msg);
 })
 
-const pretty = pino.pretty()
-pretty.pipe(child.stdout)
-
 logger.level = process.env.LOG_LEVEL || "debug";
 
 module.exports = logger;
