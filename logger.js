@@ -28,9 +28,9 @@ const child = childProcess.spawn(process.execPath, [
 
 logThrough.pipe(child.stdin);
 logThrough.on('data', (data) => {
-    console.log(JSON.parse(data.toString().trim()).msg);
+    console.log(data.toString().trim());
 })
 
-logger.level = process.env.LOG_LEVEL || "debug";
+logger.level = process.env.LOG_LEVEL || "fatal";
 
 module.exports = logger;

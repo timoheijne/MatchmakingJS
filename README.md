@@ -15,14 +15,13 @@ Also because of its Non-Blocking IO operations makes this quite desirable for la
 ## Goals of this project
 - Have a fully functional matchmaking system
 - Get more experience with NodeJS and networking programming
-- Learn Redis
+- Find a good reason to use multi-threading/clusters
 - Write a very nice portfolio piece that I can possibly use for future projects
 - Optional but preferable: Learn how to unit test
 - Optional but preferable: Continuous Intergration 
 
 
 ## Planning 
-
 | | Monday | Tuesday | Wednesday | Thursday | Friday |
 | --- | --- | --- | --- | --- | --- |
 |week 1 | Start Development Matchmaking | Finish Step 1 & start step 2 | -> | Finish Step 2 | ->
@@ -42,4 +41,6 @@ I want to have a basic server spawner up and running using Docker
 
 ## Sources
 - [Gamasutra Skill, matchmaking, and ranking systems design](https://www.gamasutra.com/view/news/310968/Video_Skill_matchmaking_and_ranking_systems_design.php)
-- [Testing In NodeJS](https://blog.risingstack.com/node-hero-node-js-unit-testing-tutorial/)
+- [Testing In NodeJS](https://mochajs.org/)
+- [NodeJS Clusters](https://nodejs.org/api/cluster.html)
+- [TCP Server](https://nodejs.org/api/net.html)

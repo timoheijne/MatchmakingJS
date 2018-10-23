@@ -9,7 +9,7 @@ const Dispatcher    = require('./dispatcher/Dispatcher');
 // TODO: Add encryption option
 class SocketService extends Dispatcher {
     constructor(port) {
-        super()
+        super();
 
         this._port = port;
         this.initSocket();
@@ -17,19 +17,38 @@ class SocketService extends Dispatcher {
 
     initSocket() {
         this._server = net.createServer((socket) => {
-            socket.on('connect', () => {
-                // Client connected, Emit a callback
-                this.emit('client.connect', {client: socket});
-            })
+            this.emit('client.connect', { client: socket });
 
             socket.on('data', (data) => {
-                // Client send data, Emit a callback for this socket
-                console.log(data);
-                // TODO: Partially Parse incomming data and emit to dispatcher
+                // Client send data, Emit a callback for this socket+
+                dataParsed = data.toString('utf8').trim().split('|');
+                if (dataParsed.length == 0) {
+                    // We've gotten some incorrect input here
+                } else {
+                    if (dataParsed[0] == "ping") {
+                        socket.write('pong\r\n');
+                    }
+
+                    this.emit(`client.message.${dataParsed[0]}`, { client: socket, event: dataParsed[0], data: dataParsed[1], raw: data});
+
+                    // A wild card for all messages coming through
+                    this.emit('client.message', { client: socket, event: dataParsed[0], data: dataParsed[1], raw: data });
+                }
+            })
+
+            socket.on('end', () => {
+                this.emit('client.end', {client: socket});
             })
 
             socket.on('close', () => {
                 this.emit('client.close', {client: socket});
+            })
+
+            socket.on('error', (err) => {
+                if (err.errno != 'ECONNRESET')
+                    logger.error(`Server running on port ${this._port} caught an error ${err.name}`, err, socket);
+
+                this.emit('client.error', {client: socket, error: err});
             })
         })
 
@@ -39,7 +58,9 @@ class SocketService extends Dispatcher {
         })
 
         this._server.on('error', (error) => {
-            logger.fatal(`Server running on port ${this._port} errored with error ${error.name}`, error);
+            if (error.errno != 'ECONNRESET')
+                logger.fatal(`Server running on port ${this._port} errored with error ${error.name}`, error);
+                
             this.emit('socket.error', {error: error});
         })
 
@@ -54,7 +75,8 @@ class SocketService extends Dispatcher {
     }
 
     closeConnection() {
-        this._server.closeSocket();
+        this._server.unref();
+        this._server.close();
     }
 }
 
