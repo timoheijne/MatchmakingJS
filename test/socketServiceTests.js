@@ -1,5 +1,5 @@
 const assert = require('assert');
-const SocketService = require('./../controllers/SocketService')
+const SocketService = require('./../services/SocketService')
 
 let server;
 

@@ -1,6 +1,6 @@
 const logger        = require('./../logger');
 const net           = require('net');
-const Dispatcher    = require('./dispatcher/Dispatcher');
+const Dispatcher    = require('./../controllers/dispatcher/Dispatcher');
 
 /* 
  * Keeping in mind the idea that we might need to open different sockets in the future

@@ -1,36 +1,23 @@
-require('dotenv').config();
+require('dotenv').config(); // This thing doesn't recognize booleans... that was quite unexpected..
 
 const logger            = require('./logger');
 const Event             = require('./controllers/EventEmitter');
-const SocketService     = require('./controllers/SocketService')
 const cluster           = require('cluster');
-require('./controllers/SocketService')
 
 logger.info("Initializing Matchmaking Service")
 
-const matchSocket = new SocketService(process.env.SOCKET_PORT || 1000)
+require('./routes/PlayerRoutes')
+require('./routes/SpawnerRoutes')
 
-matchSocket.on('client.connect', (data) => {
-    console.log('client connected');
-})
-
-matchSocket.on('client.message.ping', (data) => {
-    console.log('ping received')
-})
-
-matchSocket.on('client.end', (data) => {
-    console.log('client disconnected')
-})
-
-matchSocket.openConnection();
+// TODO: Add some form of authentication?
 
 /*
  * Steps:
  * - Open MongoDB connection (optional?)
  * - Open Matchmaking Socket for players to actually join
  * - Open Spawner Socket (the server spawner will join here)
+ * - Open a connection with some form of authentication service either REST Api or socket
  * 
- *
  * What data we want to store in matchmaking:
  * - Matches that have been made and their status (for logging purposed mainly)
  * 

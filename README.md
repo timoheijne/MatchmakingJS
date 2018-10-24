@@ -1,5 +1,6 @@
 # MatchmakingJS
-A matchmaking system written in NodeJS for my personal development and it also doubles as a school assignment 
+A matchmaking system written in NodeJS for my personal development and it also doubles as a school assignment.
+Its like tinder for matches but automatic.
 
 ![Build Image](https://travis-ci.org/lghenk/MatchmakingJS.svg?branch=master)
 ![Dependencies](https://david-dm.org/lghenk/MatchmakingJS/status.svg)
@@ -17,6 +18,7 @@ Also because of its Non-Blocking IO operations makes this quite desirable for la
 - Get more experience with NodeJS and networking programming
 - Find a good reason to use multi-threading/clusters
 - Write a very nice portfolio piece that I can possibly use for future projects
+- Some way of geo matching (better ping etc)
 - Optional but preferable: Learn how to unit test
 - Optional but preferable: Continuous Intergration 
 
