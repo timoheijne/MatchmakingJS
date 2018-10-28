@@ -1,15 +1,34 @@
+const _ = require('lodash');
+
 class DispatcherEvent {
     constructor(eventName) {
         this.eventName = eventName;
         this.callbacks = [];
     }
 
-    registerCallback(callback) {
-        this.callbacks.push(callback);
+    registerCallback() {
+        if(arguments.length > 0) {
+            delete arguments[0]['0']
+            let arr = Array.from(arguments[0]);
+            arr.shift();
+
+            this.callbacks.push(arr);
+        } 
     }
 
-    unregisterCallback(callback) {
-        let index = this.callbacks.indexOf(callback);
+    unregisterCallback() {
+        delete arguments[0]['0']
+        let arr = Array.from(arguments[0]);
+        arr.shift();
+
+        let index = -1;
+        for (let i = 0; i < this.callbacks.length; i++) {
+            const element = this.callbacks[i];
+            if(_.isEqual(arr, element)) {
+                index = i;
+                break;
+            }
+        }
 
         if(index == -1)
             return;
@@ -19,11 +38,28 @@ class DispatcherEvent {
 
     fire(data) {
         // Get a copy of the callbacks incase it gets edited mid emit
-        const callbacks = this.callbacks.slice(0);
+        const cbacks = this.callbacks.slice();
+        cbacks.forEach(callback => {
+            let cbs = callback.slice();
+            let cb = cbs[0]; // First callback
+            cbs.shift();
 
-        callbacks.forEach(callback => {
-            callback(data);
-        });
+            cb(data, () => {
+                this.fireNext(data, cbs)
+            });
+        });    
+    }
+
+    fireNext(data, callbackStack) {
+        let cbs  = callbackStack.slice();
+        let cb = cbs[0]
+        cbs.shift();
+
+        if(cb) {
+            cb(data, () => {
+                this.fireNext(data, cbs);
+            });
+        }
     }
 
     GetCallbackCount() {

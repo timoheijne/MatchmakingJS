@@ -22,10 +22,12 @@
   "homepage": "https://github.com/lghenk/MatchmakingJS#readme",
   "dependencies": {
     "dotenv": "^6.1.0",
+    "lodash": "^4.17.11",
     "mongoose": "^5.3.5",
     "pino": "^5.7.0",
     "pino-pretty": "^2.2.2",
-    "pino-tee": "^0.2.2"
+    "pino-tee": "^0.2.2",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "mitm": "^1.4.0",

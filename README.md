@@ -1,13 +1,14 @@
 # MatchmakingJS
 A matchmaking system written in NodeJS for my personal development and it also doubles as a school assignment.
-Its like tinder for matches but automatic.
+Its like tinder for game matches but automatic.
 
 ![Build Image](https://travis-ci.org/lghenk/MatchmakingJS.svg?branch=master)
 ![Dependencies](https://david-dm.org/lghenk/MatchmakingJS/status.svg)
 ![Dev Dependencies](https://david-dm.org/lghenk/MatchmakingJS/dev-status.svg)
 
 ## Features
-- Da
+- [Generic Socket Service](https://github.com/lghenk/MatchmakingJS/blob/master/services/SocketService.js)
+- Da.. Moor fetures on de way
 
 ## Software Analysis 
 I decided to go with NodeJS because of its scalability and the fact that it can run on multiple platforms.

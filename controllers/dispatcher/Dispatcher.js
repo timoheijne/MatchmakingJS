@@ -5,7 +5,7 @@ class Dispatcher {
         this.events = {};
     }
 
-    on(eventName, callback) {
+    on(eventName) {
         let event = this.events[eventName];
 
         if(!event) {
@@ -13,15 +13,15 @@ class Dispatcher {
             this.events[eventName] = event;
         }
 
-        event.registerCallback(callback);
+        event.registerCallback(arguments);
     }
 
-    off(eventName, callback) {
+    off(eventName) {
         let event = this.events[eventName];
 
         // Check if event exists, otherwise there is no callback to be unregistered
         if(event) 
-            event.unregisterCallback(callback);
+            event.unregisterCallback(arguments);
 
         if(event.GetCallbackCount() === 0)
             delete this.events[eventName];

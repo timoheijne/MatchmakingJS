@@ -1,6 +1,7 @@
 const logger        = require('./../logger');
 const net           = require('net');
 const Dispatcher    = require('./../controllers/dispatcher/Dispatcher');
+const uuidV4        = require('uuid/v4');
 
 /* 
  * Keeping in mind the idea that we might need to open different sockets in the future
@@ -15,24 +16,35 @@ class SocketService extends Dispatcher {
         this.initSocket();
     }
 
+    // TODO: Clean up this function
     initSocket() {
         this._server = net.createServer((socket) => {
             this.emit('client.connect', { client: socket });
 
+            // Generate a session id
+            socket.id = uuidV4();
+            socket.write('welcome|' + socket.id)
+
             socket.on('data', (data) => {
                 // Client send data, Emit a callback for this socket+
-                dataParsed = data.toString('utf8').trim().split('|');
+                let dataParsed = data.toString('utf8').trim().split('|');
                 if (dataParsed.length == 0) {
                     // We've gotten some incorrect input here
                 } else {
-                    if (dataParsed[0] == "ping") {
+                    let evnt = dataParsed[0];
+                    let args = [];
+                    if (dataParsed[1]) {
+                        args = dataParsed[1].split(',');
+                    }
+                    
+                    if (evnt == "ping") {
                         socket.write('pong\r\n');
                     }
 
-                    this.emit(`client.message.${dataParsed[0]}`, { client: socket, event: dataParsed[0], data: dataParsed[1], raw: data});
+                    this.emit(`client.message.${dataParsed[0]}`, { client: socket, event: evnt, data: args, raw: data});
 
                     // A wild card for all messages coming through
-                    this.emit('client.message', { client: socket, event: dataParsed[0], data: dataParsed[1], raw: data });
+                    this.emit('client.message', { client: socket, event: evnt, data: args, raw: data });
                 }
             })
 
@@ -41,7 +53,7 @@ class SocketService extends Dispatcher {
             })
 
             socket.on('close', () => {
-                this.emit('client.close', {client: socket});
+                this.emit('client.disconnect', {client: socket});
             })
 
             socket.on('error', (err) => {
@@ -77,6 +89,12 @@ class SocketService extends Dispatcher {
     closeConnection() {
         this._server.unref();
         this._server.close();
+    }
+}
+
+function emit(data) {
+    if (typeof data == "object") {
+        this.socket.write(JSON.stringify(data));
     }
 }
 

@@ -26,4 +26,3 @@ require('./routes/SpawnerRoutes')
  * - Server nodes & their available servers
  * - Match Results (This can be part of the matchmaking service but its really game specific outcome of what needs to be stored)
  */
-
