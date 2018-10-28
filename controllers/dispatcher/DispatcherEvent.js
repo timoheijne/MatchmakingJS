@@ -7,19 +7,25 @@ class DispatcherEvent {
     }
 
     registerCallback() {
-        if(arguments.length > 0) {
+        if (arguments.length > 0) {
             delete arguments[0]['0']
             let arr = Array.from(arguments[0]);
             arr.shift();
 
+            if(typeof arr[0] == 'object')
+                arr = arr[0];
+
             this.callbacks.push(arr);
-        } 
+        }
     }
 
     unregisterCallback() {
         delete arguments[0]['0']
         let arr = Array.from(arguments[0]);
         arr.shift();
+
+        if (typeof arr[0] == 'object')
+            arr = arr[0];
 
         let index = -1;
         for (let i = 0; i < this.callbacks.length; i++) {

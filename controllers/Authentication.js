@@ -23,11 +23,9 @@ module.exports.PlayerAuthentication = (data) => {
     data.client.write('authenticated');   
 }
 
-module.exports.PlayerUnauthenticate = (data) => {
-    console.log(data.client.test);
+module.exports.PlayerUnauthenticate = (data, next) => {
     logger.info('Client unauthenticated', { uid: data.client.uid, session_id: data.client.id})
     authenticated.splice(authenticated.indexOf(data.client.id), 1);
-    console.log(authenticated);
 }
 
 module.exports.IsAuthenticated = (data, next) => {

@@ -10,5 +10,5 @@ socket.on('connect', () => {
 })
 
 socket.on('data', (data) => {
-    console.log(data.toString('utf8') + '\n')
+    console.log(data.toString('utf8') + '             ')
 })

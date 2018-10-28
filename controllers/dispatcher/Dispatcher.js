@@ -7,7 +7,7 @@ class Dispatcher {
 
     on(eventName) {
         let event = this.events[eventName];
-
+        
         if(!event) {
             event = new DispatcherEvent(eventName)
             this.events[eventName] = event;
@@ -27,12 +27,14 @@ class Dispatcher {
             delete this.events[eventName];
     }
 
-    once(eventName, callback) {
-        this.on(eventName, callback);
+    once(eventName) {
+        let arr = Array.from(arguments);
+        arr.shift();
 
+        this.on(eventName, arr);
         this.on(eventName, (data) => { 
             // Hook onto that event and delete callback when event is fired
-            this.off(eventName, callback)
+            this.off(eventName, arr)
         })
     }
 

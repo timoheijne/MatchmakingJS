@@ -51,4 +51,36 @@ describe('Dispatcher', () => {
 
         assert.equal(num, 1);
     });
+
+    it('should be able to register multiple callbacks', (done) => {
+        const testDispatch = new Dispatcher();
+        const cb1 = (data, next) => {
+            next();
+        }
+
+        const cb2 = () => {
+            done()
+        }
+
+        testDispatch.on('test', cb1, cb2);
+        testDispatch.emit('test');
+    }) 
+
+    it('.once with multiple callbacks', () => {
+        const testDispatch = new Dispatcher();
+        let num = 0;
+        const cb1 = (data, next) => {
+            next();
+        }
+
+        const cb2 = () => {
+            num += 1;
+        }
+
+        testDispatch.once('test', cb1, cb2);
+        testDispatch.emit('test');
+        testDispatch.emit('test');
+
+        assert.equal(num, 1);
+    }) 
 });
