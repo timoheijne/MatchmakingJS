@@ -12,6 +12,7 @@ class DispatcherEvent {
             let arr = Array.from(arguments[0]);
             arr.shift();
 
+            // Because of .once we can also receive one argument with an array inside.. Remove excess array
             if(typeof arr[0] == 'object')
                 arr = arr[0];
 
@@ -24,6 +25,7 @@ class DispatcherEvent {
         let arr = Array.from(arguments[0]);
         arr.shift();
 
+        // Because of .once we can also receive one argument with an array inside.. Remove excess array
         if (typeof arr[0] == 'object')
             arr = arr[0];
 
