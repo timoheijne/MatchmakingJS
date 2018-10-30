@@ -1,7 +1,8 @@
 class Party {
-    constructor(partyId) {
+    constructor(partyId, partyType) {
         this.party_id = partyId;
         this.party_members = [];
+        this.party_type = partyType || "Default";
     }
 
     GetLeader() {

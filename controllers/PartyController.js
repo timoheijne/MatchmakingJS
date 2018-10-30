@@ -5,9 +5,15 @@ const uuidV4        = require('uuid/v4')
 const parties       = []; // All parties currently active
 
 
-// no arguments
+// [0] = party type (or default = "Default")
 module.exports.CreateParty = (data) => {
-    let p = new Party(uuidV4());
+    const party_type = data.args[0] || "Default";
+
+    if(!PartyTypes[party_type]) {
+        logger.error('Provided party type not found... Matchmaking will now use HARDCODED defaults if available or limit functionality', { party_type: party_type})
+    }
+    
+    let p = new Party(uuidV4(), party_type);
     p.AddMember(data.client)
 
     parties.push(p);
@@ -16,21 +22,41 @@ module.exports.CreateParty = (data) => {
     logger.info('Created party', {party_id: p.party_id, leader: data.client.id})
 }
 
+// TODO: Check if player is allowed to join because of party type
 // [0] party id to join
 module.exports.JoinParty = (data) => {
     // Firstly check if player is already in a party.
-    let party = GetClientsParty(data.client)
+    const party = GetClientsParty(data.client)
+
+    const pType = PartyTypes[party.party_type];
+
+    // Ugly hardcoded default if party type does not exist
+    if(!pType) {
+        pType = {max_players: 4};
+    }
 
     if(party) {
         // Player is already in party...
-
-        // DESIGN: Kick from current party and join new OR simply deny new join
+        socket.write('party.join.failed|already_in_party')
+        logger.info('Player tried to join new party while already in party', {client: data.client.id, attempted_join: party, existing_party: party})
     } else {
-        party.AddMember(data.client)
-        logger.info("Client joined a party", {party_id: party.party_id, client: data.client.id})
+        if (party.party_members.length >= pType.max_players) {
+            return socket.write('party.join.failed|party_full')
+        }
 
-        socket.write('party.joined')
-        // TODO: Broadcast party update to all party members
+        GetPartyById(data.args[0], 
+            error => {
+                socket.write('party.join.failed|party_not_found');
+                logger.info('Client tried to join non existing party', {client: data.client.id, party_id: data.args[0]})
+            },
+            p => {
+                p.AddMember(data.client)
+                logger.info("Client joined a party", { party_id: p.party_id, client: data.client.id })
+
+                socket.write('party.join.success')
+            // TODO: Broadcast party update to all party members
+            }
+        )        
     }
 }
 
@@ -82,9 +108,13 @@ module.exports.Kick = (data) => {
     }
 }
 
-module.exports.GetPartyById = (partyId, party) => {
+module.exports.GetPartyById = (partyId, error, party) => {
     let p = this.parties.find(o => o.party_id == partyId);
-    party(p);
+    if(p) {
+        party(p)
+    } else {
+        error()
+    }
 }
 
 function GetClientsParty(socket) {
