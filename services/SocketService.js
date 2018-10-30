@@ -9,8 +9,10 @@ const uuidV4        = require('uuid/v4');
 
 // TODO: Add encryption option
 
-// FIXME: I've noticed a problem where if we write to the socket to fast that the stings get combined.
-// That is an unexpected behaviour which should be fixed with either a queue and/or termination character
+// DESIGN: Refactor to use json strings as data? (new format would be EVENTNAME|JSONSTRING)
+
+// FIXME: I've noticed a problem where if we write to the socket to fast that the stings get combined. termination character likely to be \n
+// That is an unexpected behaviour which should be fixed the use of a termination character
 class SocketService extends Dispatcher {
     constructor(port) {
         super();
@@ -28,12 +30,15 @@ class SocketService extends Dispatcher {
             socket.id = uuidV4();
             socket.write('welcome|' + socket.id)
 
-            socket.send = (data) => {
-                // TODO: Implementation for the fixme above
+            socket.send = (eventName, data) => {
+                // TODO: Implementation for the design: above
+                // This function will replace the direct socket.write and will automatically parse correct formating to the socket.write (friendlier and DRY use)
+                // Also this will handle the termination character
                 console.log(socket.id);
             }
 
             socket.on('data', (data) => {
+
                 // Client send data, Emit a callback for this socket+
                 let dataParsed = data.toString('utf8').trim().split('|');
                 if (dataParsed.length == 0) {
@@ -49,10 +54,10 @@ class SocketService extends Dispatcher {
                         socket.write('pong\r\n');
                     }
 
-                    this.emit(`client.message.${dataParsed[0]}`, { client: socket, event: evnt, data: args, raw: data});
+                    this.emit(`client.message.${dataParsed[0]}`, { client: socket, event: evnt, args: args, raw: data});
 
                     // A wild card for all messages coming through
-                    this.emit('client.message', { client: socket, event: evnt, data: args, raw: data });
+                    this.emit('client.message', { client: socket, event: evnt, args: args, raw: data });
                 }
             })
 
