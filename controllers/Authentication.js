@@ -1,5 +1,5 @@
-const logger = require('./../logger');
-
+const logger          = require('./../logger');
+const AuthModel = require('./../models/Authenticated');
 const authenticated = [];
 
 /*
@@ -13,10 +13,18 @@ module.exports.PlayerAuthentication = (data) => {
      *  2. Make connection to auth server to verify if data is correct
      *  3. Ack authentication
      */
+    if(authenticated.find(a => a = data.client.id)) {
+        // Player already authenticated
+        return logger.debug("Double authentication detected", {socket_id: data.client.id});
+    }
+
     data.client.uid = 0;
-    authenticated.push({session_id: data.client.id, uid: 0}); // Clients session id
+    const auth = new AuthModel(data.client.id, data.client.remoteAddress)
+
+    authenticated.push(auth); // Clients session id
 
     // TODO: Store session id & uid in database for logging
+    // TODO: IP Bind authentication to prevent spoofing and other errors
     
     logger.info('Client authenticated', { uid: data.client.uid, session_id: data.client.id })
 
@@ -25,11 +33,18 @@ module.exports.PlayerAuthentication = (data) => {
 
 module.exports.PlayerUnauthenticate = (data, next) => {
     logger.info('Client unauthenticated', { uid: data.client.uid, session_id: data.client.id})
-    authenticated.splice(authenticated.indexOf(data.client.id), 1);
+    let i = authenticated.findIndex(a => a.session_id == data.client.id && a.remoteAddress == data.client.remoteAddress);
+    authenticated.splice(i, 1);
 }
 
 module.exports.IsAuthenticated = (data, next) => {
-    next();
+    let auth = authenticated.find(a => a.remoteAddress == data.client.remoteAddress && a.session_id == data.client.id);
+
+    if(auth) {
+        next();
+    } else {
+        data.client.write('unauthenticated')
+    }
 }
 
 module.exports.SpawnerAuthentication
