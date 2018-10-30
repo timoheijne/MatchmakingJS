@@ -45,7 +45,7 @@ module.exports.JoinParty = (data) => {
         }
 
         GetPartyById(data.args[0], 
-            error => {
+            () => {
                 data.client.write('party.join.failed|party_not_found');
                 logger.info('Client tried to join non existing party', {client: data.client.id, party_id: data.args[0]})
             },
