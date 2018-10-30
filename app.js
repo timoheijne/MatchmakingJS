@@ -7,7 +7,6 @@ const cluster           = require('cluster');
 logger.info("Initializing Matchmaking Service")
 
 require('./routes/PlayerRoutes')
-require('./routes/SpawnerRoutes')
 
 // TODO: Add some form of authentication?
 
