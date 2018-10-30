@@ -15,6 +15,11 @@ class Party {
     RemoveMember(member) {
         let i = this.party_members.indexOf(member);
         this.party_members.splice(i, 1);
+
+        if(i != -1)
+            return true;
+
+        return false;
     }
 
     HasMember(session_id) {

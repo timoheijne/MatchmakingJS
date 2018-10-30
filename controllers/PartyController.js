@@ -2,7 +2,7 @@ const logger        = require('../logger');
 const PartyTypes    = require('../config/PartyTypes')
 const Party         = require('../models/Party')
 const uuidV4        = require('uuid/v4')
-const parties = []; // All parties currently active
+const parties       = []; // All parties currently active
 
 
 // no arguments
@@ -23,9 +23,13 @@ module.exports.JoinParty = (data) => {
 
     if(party) {
         // Player is already in party...
+
+        // DESIGN: Kick from current party and join new OR simply deny new join
     } else {
         party.AddMember(data.client)
+        logger.info("Client joined a party", {party_id: party.party_id, client: data.client.id})
 
+        socket.write('party.joined')
         // TODO: Broadcast party update to all party members
     }
 }
@@ -36,13 +40,11 @@ module.exports.LeaveParty = (data) => {
 
     if(party) {
         party.RemoveMember(data.client);
-        data.client.write('leftparty')
-        logger.info('Left Party', {party_id: party.party_id, client: data.client.id})
+        data.client.write('party.left')
+        logger.info('Client left a Left Party', {party_id: party.party_id, client: data.client.id})
 
         if(party.party_members.length == 0) {
-            DisbandParty(party.party_id)
-        } else {
-            // Loop throug the party members and announce the new party setup
+            return DisbandParty(party.party_id)
         }
 
         // TODO: Broadcast party update to all party members
@@ -51,8 +53,33 @@ module.exports.LeaveParty = (data) => {
 
 // [0] = session id to kick from party (we find party by session id)
 module.exports.Kick = (data) => {
-    // 1. Get party
-    // 2. Check if kicker is party leader
+    if(data.args[0]) {
+        const party = GetClientsParty(data.client);
+        if (party && party.GetLeader().id == data.client.id && data.args[0] != data.client.id) {
+            const member = party.party_members.find(m => m.id == data.args[0]);
+
+            if(member) {
+                // We found a member
+                if (party.RemoveMember(member)) {
+                    // member removed from party
+                    socket.write('party.kick.success')
+                    logger.info("A player was kicked from party", { party: party, kicked: member.id, leader: data.client.id})
+                    // TODO: Update party members with new party setup
+                } else {
+                    logger.error('Unexpected error when a client tried to kick someone from party', {party: party, member: member, client: data.client})
+                    socket.write('party.kick.failed|unexpected_error')
+                }
+            } else {
+                logger.info('Kick failed because member was not in party', { party: party, leader: data.client.id, attempted_kick: data.args[0] })
+                socket.write('party.kick.failed|member_not_found')
+            }
+            
+        }
+    } else {
+        // We expected a session id to get kicked but we got none
+        logger.info('Kick failed because no session id was provided', { party: party, leader: data.client.id })
+        socket.write('party.kick.failed|no_session_id_provided')
+    }
 }
 
 module.exports.GetPartyById = (partyId, party) => {
@@ -62,6 +89,7 @@ module.exports.GetPartyById = (partyId, party) => {
 
 function GetClientsParty(socket) {
     let p = parties.find(p => p.HasMember(socket));
+    return p;
 }
 
 function DisbandParty(partyId, error, done) {
