@@ -4,20 +4,20 @@ const Party         = require('../models/Party')
 const uuidV4        = require('uuid/v4')
 const parties       = []; // All parties currently active
 
-
 // [0] = party type (or default = "Default")
 module.exports.CreateParty = (data) => {
     const party_type = data.args[0] || "Default";
 
     if(!PartyTypes[party_type]) {
-        logger.error('Provided party type not found... Matchmaking will now use HARDCODED defaults if available or limit functionality', { party_type: party_type})
+        logger.fatal('Provided party type not found... Matchmaking will now use HARDCODED defaults if available or limit functionality', { party_type: party_type})
+        return data.client.write('party.create.failed|party_type_not_found')
     }
     
     let p = new Party(uuidV4(), party_type);
     p.AddMember(data.client)
 
     parties.push(p);
-    data.client.write('partycreated|'+p.party_id)
+    data.client.write('party.create.success|'+p.party_id)
 
     logger.info('Created party', {party_id: p.party_id, leader: data.client.id})
 }
@@ -27,33 +27,33 @@ module.exports.CreateParty = (data) => {
 module.exports.JoinParty = (data) => {
     // Firstly check if player is already in a party.
     const party = GetClientsParty(data.client)
-
     const pType = PartyTypes[party.party_type];
 
-    // Ugly hardcoded default if party type does not exist
+    // Can't hurt to check right?
     if(!pType) {
-        pType = {max_players: 4};
+        logger.fatal('Client tried to join a party but party type was no longer found?!? HOW?!?! WHY IS IT CREATED', {party: party, client: data.client.id});
+        return data.client.write('party.join.failed|party_type_not_found');
     }
 
     if(party) {
         // Player is already in party...
-        socket.write('party.join.failed|already_in_party')
+        data.client.write('party.join.failed|already_in_party')
         logger.info('Player tried to join new party while already in party', {client: data.client.id, attempted_join: party, existing_party: party})
     } else {
         if (party.party_members.length >= pType.max_players) {
-            return socket.write('party.join.failed|party_full')
+            return data.client.write('party.join.failed|party_full')
         }
 
         GetPartyById(data.args[0], 
             error => {
-                socket.write('party.join.failed|party_not_found');
+                data.client.write('party.join.failed|party_not_found');
                 logger.info('Client tried to join non existing party', {client: data.client.id, party_id: data.args[0]})
             },
             p => {
                 p.AddMember(data.client)
                 logger.info("Client joined a party", { party_id: p.party_id, client: data.client.id })
 
-                socket.write('party.join.success')
+                data.client.write('party.join.success')
             // TODO: Broadcast party update to all party members
             }
         )        
@@ -88,23 +88,23 @@ module.exports.Kick = (data) => {
                 // We found a member
                 if (party.RemoveMember(member)) {
                     // member removed from party
-                    socket.write('party.kick.success')
+                    data.client.write('party.kick.success')
                     logger.info("A player was kicked from party", { party: party, kicked: member.id, leader: data.client.id})
                     // TODO: Update party members with new party setup
                 } else {
                     logger.error('Unexpected error when a client tried to kick someone from party', {party: party, member: member, client: data.client})
-                    socket.write('party.kick.failed|unexpected_error')
+                    data.client.write('party.kick.failed|unexpected_error')
                 }
             } else {
                 logger.info('Kick failed because member was not in party', { party: party, leader: data.client.id, attempted_kick: data.args[0] })
-                socket.write('party.kick.failed|member_not_found')
+                data.client.write('party.kick.failed|member_not_found')
             }
             
         }
     } else {
         // We expected a session id to get kicked but we got none
         logger.info('Kick failed because no session id was provided', { party: party, leader: data.client.id })
-        socket.write('party.kick.failed|no_session_id_provided')
+        data.client.write('party.kick.failed|no_session_id_provided')
     }
 }
 
