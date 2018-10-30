@@ -4,7 +4,7 @@
 ![Dependencies](https://david-dm.org/lghenk/MatchmakingJS/status.svg)
 ![Dev Dependencies](https://david-dm.org/lghenk/MatchmakingJS/dev-status.svg)
 
-A matchmaking system written in NodeJS. The idea of this matchmaking system is to be as generic and configurable as possible so that I can use it for any game in the future with some minor tweaks
+A matchmaking system written in NodeJS. The idea of this matchmaking system is to be as generic and configurable as possible so that I can use it for any game in the future with no- or minor tweaks
 
 This project also doubles as a school assignment (that I created my self).
 
@@ -18,7 +18,7 @@ This project also doubles as a school assignment (that I created my self).
 Most languages can handle TCP Sockets. I have sufficient proficiency in the following languages: C#, C++, JAVA & NodeJS(javascript)
 that are suitable for this system
 
-- C++: In C++ It is relatively hard to work with sockets and not only that you have to take care of your pointers and really make sure you are not creating any memory leaks and since we will be working with a ton of reference to the clients socket in the project I personally think it is not the best choice on the list HOWEVER it is extremely fast
+- C++: In C++ It is relatively hard to work with sockets and not only that you have to take care of your pointers and really make sure you are not creating any memory leaks. Since we will be working with a ton of reference to the clients socket in this project. I personally think it is not the best choice on the list HOWEVER it is extremely fast
 + C++ is not platform independent out of the box and it's not exactly the language to prototype in.
 
 - C# & JAVA: Both languages are fast and reliable. Both languages are easily compiled for multiple OS'es 
