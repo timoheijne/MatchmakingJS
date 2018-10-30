@@ -19,10 +19,9 @@ module.exports.CreateParty = (data) => {
     parties.push(p);
     data.client.write('party.create.success|'+p.party_id)
 
-    logger.info('Created party', {party_id: p.party_id, leader: data.client.id})
+    logger.info('Created party', {party_id: p.party_id, leader: data.client.id, party_type: p.party_type})
 }
 
-// TODO: Check if player is allowed to join because of party type
 // [0] party id to join
 module.exports.JoinParty = (data) => {
     // Firstly check if player is already in a party.
@@ -118,7 +117,7 @@ module.exports.GetPartyById = (partyId, error, party) => {
 }
 
 function GetClientsParty(socket) {
-    let p = parties.find(p => p.HasMember(socket));
+    let p = parties.find(p => p.HasMember(socket.id));
     return p;
 }
 
@@ -132,11 +131,16 @@ function DisbandParty(partyId, error, done) {
             return;
     }
 
+    logger.info('Disbanding party...', { party: parties[i] })
+
     if(parties[i].party_members.length > 0) {
-        // We need to kick everyone from this party first
+        logger.info('Kicking clients from disbaning party', { party: parties[i]  })
+        // TODO: Kick everyone from party
     }
 
-    parties.splice(i, 1);
+    const p = parties.splice(i, 1);
+    logger.info('Party disbanded', { party: p })
+
     if(done)
         done();
 }
