@@ -8,6 +8,9 @@ const uuidV4        = require('uuid/v4');
  */
 
 // TODO: Add encryption option
+
+// FIXME: I've noticed a problem where if we write to the socket to fast that the stings get combined.
+// That is an unexpected behaviour which should be fixed with either a queue and/or termination character
 class SocketService extends Dispatcher {
     constructor(port) {
         super();
@@ -24,6 +27,11 @@ class SocketService extends Dispatcher {
             // Generate a session id
             socket.id = uuidV4();
             socket.write('welcome|' + socket.id)
+
+            socket.send = (data) => {
+                // TODO: Implementation for the fixme above
+                console.log(socket.id);
+            }
 
             socket.on('data', (data) => {
                 // Client send data, Emit a callback for this socket+
@@ -54,6 +62,7 @@ class SocketService extends Dispatcher {
 
             socket.on('close', () => {
                 this.emit('client.disconnect', {client: socket});
+                socket.destroy();
             })
 
             socket.on('error', (err) => {
