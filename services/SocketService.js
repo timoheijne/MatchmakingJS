@@ -28,6 +28,7 @@ class SocketService extends Dispatcher {
 
             // Generate a session id
             socket.id = uuidV4();
+            socket.matchmakingData = {};
             socket.write('welcome|' + socket.id)
 
             socket.send = (eventName, data) => {

@@ -3,36 +3,13 @@ require('dotenv').config(); // This thing doesn't recognize booleans... that was
 const logger            = require('./logger');
 const Event             = require('./controllers/EventEmitter');
 const cluster           = require('cluster');
-const Matchmaker        = require('./controllers/MatchController')
-
-let clusterRespawns     = 0;
 
 if(cluster.isMaster) {
     logger.info(`Initializing Matchmaking Service PID:${process.pid}`)
 
     require('./routes/PlayerRoutes')
+    const Matchmaker        = require('./controllers/MatchController')
     Matchmaker.InitializeMatchmaking();
-
-    cluster.on('online', worker => {
-        logger.info(`Cluster worker ${worker.process.pid} is online`)
-        clusterRespawns = 0;
-    })
-
-    cluster.on('exit', worker => {
-        if(clusterRespawns >= 10) {
-            // TODO: Send an emergency message to some API that can notify us that the matchmaker is no longer working
-            throw Error("Unable to start cluster... Cannot initialize matchmaker process")
-        }
-
-        if(!worker.suicide) {
-            logger.fatal(`Our matchmaking cluster ${worker.process.pid} died, Initializing new cluster`)
-            Matchmaker.InitializeMatchmaking();
-            clusterRespawns += 1;
-        } else {
-            logger.info(`Cluster ${worker.process.pid} was manually stopped`)
-        }
-            
-    })
 } else {
     require('./controllers/MatchmakingCluster');
 }

@@ -19,7 +19,7 @@ socket.on('client.message.authenticate', PlayerAuth.PlayerAuthentication);
 // All sockets should be authenticated after this point
 socket.on('client.disconnect', PlayerAuth.IsAuthenticated, PartyController.LeaveParty)
 
-socket.on('client.message.joinMatchmaking', PlayerAuth.IsAuthenticated, Matchmaker.SearchMatch)
+socket.on('client.message.joinMatchmaking', PlayerAuth.IsAuthenticated, Matchmaker.JoinMatchmaking)
 
 socket.on('client.message.createParty', PlayerAuth.IsAuthenticated, PartyController.CreateParty)
 socket.on('client.message.joinParty', PlayerAuth.IsAuthenticated, PartyController.JoinParty)

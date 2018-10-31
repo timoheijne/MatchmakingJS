@@ -4,17 +4,17 @@ const uuidV4            = require('uuid/V4')
 const PartyController   = require('./PartyController')
 const cluster           = require('cluster');
 
+const clients = []; // All clients currently awaiting a match will be stored here
+
+let clusterRespawns     = 0;
 let worker;
-
-const clients = {}; // All clients currently awaiting a match will be stored here
-
-const lobbies = {};
 // We should try to work FIFO (First in, First Out) here
 
 module.exports.InitializeMatchmaking = () => {
     if(worker) {
         // A worker already exists.. Kill this one first
-        logger.info(`Killed matchmaking worker PID:${worker.pid}`)
+        logger.info(`Killed matchmaking worker PID:${worker.process.pid}`)
+        worker.killed = true;
         worker.kill();
     }
 
@@ -22,89 +22,85 @@ module.exports.InitializeMatchmaking = () => {
     worker = cluster.fork();
 }
 
+// args: [0] = Match Type | If player is in party its automatically detected
+module.exports.JoinMatchmaking = (data) => {
+    const mType = data.client.matchmakingData.matchType = data.args[0] || "Default";
 
+    if(!MatchTypes[mType]) {
+        logger.fatal('Provided Match Type does NOT exist', {match_type: mType, client: data.client.id});
+        return data.client.write('matchmaking.failed|incorrect_match_type')
+    }
 
+    if(data.client.matchmakingData.partyId) {
+        // Party ID has been send check if party exists and if client is leader
+        PartyController.GetPartyById(data.client.matchmakingData.partyId, () => {
+            // No party was found, but partyId was set.
+            logger.info('Player has party ID in system, but party does not exist', { session_id: data.client.id, party_id: data.client.matchmakingData.partyId})
+            return data.client.write('matchmaking.failed|party_id_incorrect')
+        }, party => {
+            // Party was found
+            if (party.GetLeader().id == data.client.id) {
+                // Player is leader.. We can start matchmaking with party
 
+                logger.info('Matchmaking for party started', { party_id: party.party_id, match_type: mType})
+                clients.push(party.party_members);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////
-// REFACTORING IN PROGRESS
-/////////////////////////////////////////////////////////////////////////
-
-// args: [0] = Match Type, [1] = party id (optional)
-module.exports.SearchMatch = (data) => {
-    /*
-     * Steps:
-     * 0. Check if solo or party
-     * 1. Check if match type is valid
-     * 2. Search for a lobby player(s) can join
-     * 3. If no match found, Create lobby
-     */
-
-    const mType = data.args[0] || "Default";
-    const partyId = data.args[1] || null;
-
-    // Check if player is already in a lobby
-    const pLobby = GetPlayerLobby(data.client.id);
-
-    PartyController.GetPartyById(partyId, () => {
-        // No party found
-        logger.error('Client provided party id, No party was found', {party_id: partyId, session_id: data.client.id})
-        return data.client.write('matchmaking.join.failed|incorrect_party_id')
-    }, party => {
-        // Party found
-    })    
-
-    console.log(mType, partyId);
-
-    if (MatchTypes[mType]) {
-        if(!lobbies[mType]) {
-            // No match exists with this match type
-            lobbies[mType] = {};
-            const lobby = {
-                id: uuidV4(),
-                match_type: mType,
-                players: [data.client],
+                // Unfortunately we cannot passaslong sockets to the worker, so we have to send the ids and convert them back to sockets on callback
+                worker.send({ event: 'matchmaking.start', clients: party.party_members.map(m => { return m.id })});
+                
+                party.party_members.forEach(member => {
+                    member.write('matchmaking.started');
+                })
+            } else {
+                logger.info('Client tried to start matchmaking with party but is not party leader', { client: data.client.id, party_id: party.party_id})
+                return data.client.write('matchmaking.failed|not_party_leader');
             }
-
-            lobbies[mType][Object.keys(lobbies[mType]).length] = lobby;
-            logger.info("Lobby Created", {lobby_id: lobby.id, session_id: data.client.id})
-            data.client.write('matchmaking.join.success|'+lobby.id);
-        } else {
-            PollLobbies(data);
-        }
+        })
     } else {
-        logger.fatal("Player tried to join matchmaking with an unknown match type", {match_type: mType})
-        data.client.write("matchmaking.join.failed|unknown_match_type")
+        // Player is not in party
+        clients.push([data.client]);
+        logger.info('Solo queue matchmaking started', { match_type: mType, client: data.client.id })
+
+        // Unfortunately we cannot passaslong sockets to the worker, so we have to send the ids and convert them back to sockets on callback
+        worker.send({ event: 'matchmaking.start', clients: [data.client.id] })
+        data.client.write('matchmaking.started');
     }
 }
 
-module.exports.LeaveLobby = (data) => {
+// [0] = Leave with party (can only if party leader... Otherwise player will also leave party)
+module.exports.LeaveMatchmaking = (data) => {
+    let index = clients.findIndex(c => c.id == data.client.id);
+    clients.splice(index, 1);
 
+    worker.send({event: "player.remove", client: data.client})
+
+    // TODO: send to all players in party that matchmaking has stopped if with party and party leader
+    data.client.write('matchmaking.stopped');
 }
 
-// args: [0] = Match Type, [1] = Party ID
-module.exports.PollLobbies = (data) => {
+cluster.on('online', worker => {
+    logger.info(`Cluster worker ${worker.process.pid} is online`)
 
-}
+    // Send all current clients 
 
-function GetPlayerLobby(session_id) {
-    lobbies.forEach(matchLobbies => {
-        matchLobbies.forEach(lobby => {
-            const p = lobby.players.find(p => p.id == session_id)
-            return p;
-        })
-    });
-}
+    // Setup message listener
+    worker.on('message', message => {
+        console.log(message)
+    })
+})
+
+cluster.on('exit', worker => {
+    if(clusterRespawns >= 10) {
+        // TODO: Send an emergency message to some API that can notify us that the matchmaker is no longer working
+        throw Error("Unable to start cluster... Cannot initialize matchmaker process")
+    }
+
+    if(!worker.killed) {
+        logger.fatal(`Our matchmaking cluster ${worker.process.pid} died, Initializing new cluster`)
+        Matchmaker.InitializeMatchmaking();
+        clusterRespawns += 1;
+    } else {
+        logger.info(`Cluster ${worker.process.pid} was manually stopped`)
+    }
+        
+})

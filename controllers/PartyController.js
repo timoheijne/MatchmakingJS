@@ -17,6 +17,8 @@ module.exports.CreateParty = (data) => {
     p.AddMember(data.client)
 
     parties.push(p);
+
+    data.client.matchmakingData.partyId = p.party_id;
     data.client.write('party.create.success|'+p.party_id)
 
     logger.info('Created party', {party_id: p.party_id, leader: data.client.id, party_type: p.party_type})
@@ -52,6 +54,7 @@ module.exports.JoinParty = (data) => {
                 p.AddMember(data.client)
                 logger.info("Client joined a party", { party_id: p.party_id, client: data.client.id })
 
+                data.client.matchmakingData.partyId = p.party_id;
                 data.client.write('party.join.success')
             // TODO: Broadcast party update to all party members
             }
@@ -65,6 +68,9 @@ module.exports.LeaveParty = (data) => {
 
     if(party) {
         party.RemoveMember(data.client);
+
+        delete data.client.matchmakingData.partyId;
+
         data.client.write('party.left')
         logger.info('Client left a Left Party', {party_id: party.party_id, client: data.client.id})
 
@@ -87,6 +93,10 @@ module.exports.Kick = (data) => {
                 // We found a member
                 if (party.RemoveMember(member)) {
                     // member removed from party
+
+                    // TODO: Check if the socket data is actually updated when doing it like this
+                    delete member.matchmakingData.partyId;
+
                     data.client.write('party.kick.success')
                     logger.info("A player was kicked from party", { party: party, kicked: member.id, leader: data.client.id})
                     // TODO: Update party members with new party setup
@@ -108,7 +118,7 @@ module.exports.Kick = (data) => {
 }
 
 module.exports.GetPartyById = (partyId, error, party) => {
-    let p = this.parties.find(o => o.party_id == partyId);
+    let p = parties.find(o => o.party_id == partyId);
     if(p) {
         party(p)
     } else {
