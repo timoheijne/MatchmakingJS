@@ -6,7 +6,7 @@ const socket = net.createConnection({host: 'localhost', port: 1100});
 
 socket.on('connect', () => {
     console.log("Connection to server has been made")
-
+    socket.write('test\n')
     // socket.write('createParty')
 })
 
@@ -18,6 +18,6 @@ socket.on('data', (data) => {
         socket.write('authenticate');
 
     if(d[0] == "authenticated") {
-        socket.write('createParty')
+        socket.write('joinMatchmaking')
     }
 })
