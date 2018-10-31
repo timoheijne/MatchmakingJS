@@ -45,8 +45,19 @@ module.exports.JoinMatchmaking = (data) => {
                 logger.info('Matchmaking for party started', { party_id: party.party_id, match_type: mType})
                 clients.push(party.party_members);
 
+                const clientData = {
+                    match_type: mType,
+                    clients: party.party_members.map(m => { return m.id }),
+                    elo: {
+                        average: 0,
+                        max: 0,
+                        min: 0
+                    }
+                    // TODO: Calculate elo's
+                }
+
                 // Unfortunately we cannot passaslong sockets to the worker, so we have to send the ids and convert them back to sockets on callback
-                worker.send({ event: 'matchmaking.start', clients: party.party_members.map(m => { return m.id })});
+                worker.send({ event: 'matchmaking.start', clientData: clientData});
                 
                 party.party_members.forEach(member => {
                     member.write('matchmaking.started');
@@ -61,8 +72,19 @@ module.exports.JoinMatchmaking = (data) => {
         clients.push([data.client]);
         logger.info('Solo queue matchmaking started', { match_type: mType, client: data.client.id })
 
+        const clientData = {
+            match_type: mType,
+            clients: data.client.id,
+            elo: {
+                average: 0,
+                max: 0,
+                min: 0
+            }
+            // TODO: Calculate elo's
+        }
+
         // Unfortunately we cannot passaslong sockets to the worker, so we have to send the ids and convert them back to sockets on callback
-        worker.send({ event: 'matchmaking.start', clients: [data.client.id] })
+        worker.send({ event: 'matchmaking.start', clientData: clientData })
         data.client.write('matchmaking.started');
     }
 }
@@ -97,7 +119,7 @@ cluster.on('exit', worker => {
 
     if(!worker.killed) {
         logger.fatal(`Our matchmaking cluster ${worker.process.pid} died, Initializing new cluster`)
-        Matchmaker.InitializeMatchmaking();
+        this.InitializeMatchmaking();
         clusterRespawns += 1;
     } else {
         logger.info(`Cluster ${worker.process.pid} was manually stopped`)
