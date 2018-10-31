@@ -8,7 +8,7 @@ if(cluster.isMaster) {
     logger.info(`Initializing Matchmaking Service PID:${process.pid}`)
 
     require('./routes/PlayerRoutes')
-    const Matchmaker        = require('./controllers/MatchController')
+    const Matchmaker = require('./controllers/MatchController')
     Matchmaker.InitializeMatchmaking();
 } else {
     require('./controllers/MatchmakingCluster');
