@@ -26,7 +26,7 @@ module.exports.PlayerAuthentication = (data) => {
     // TODO: Store session id & uid in database for logging
     // TODO: IP Bind authentication to prevent spoofing and other errors
     
-    logger.info('Client authenticated', { uid: data.client.uid, session_id: data.client.id })
+    logger.info('Client authenticated', { uid: data.client.uid, session_id: data.client.id, remoteAddress: data.client.remoteAddress })
 
     data.client.write('authenticated');   
 }
