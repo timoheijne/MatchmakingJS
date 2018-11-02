@@ -9,6 +9,7 @@ if(cluster.isMaster) {
 
     require('./routes/PlayerRoutes')
     const Matchmaker = require('./controllers/MatchController')
+    
     Matchmaker.InitializeMatchmaking();
 } else {
     require('./controllers/MatchmakingCluster');
