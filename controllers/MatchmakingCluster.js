@@ -58,6 +58,7 @@ function FindMatch() {
         // Calculate Match Rate
 
         client.score = CalculateMatchScore(first, client)
+        if(client.score == -1) continue; // In the process of calculating we've encountered something which makes this client unfit for this match.
         matches.push(client);
     });
 
@@ -119,4 +120,5 @@ function initMatchmaking() {
         // This is a matchmaking step.
         FindMatch();
     }, 500); // We don't need a while true loop here, Search for a match every .5 of a second is more than enough
+    // Also we can reduce this number and make players happy because "We've sped up the matchmaking process" by doing absolutely nothing to the algorithm *cough*
 }
