@@ -24,14 +24,13 @@ module.exports.PlayerAuthentication = (data) => {
     authenticated.push(auth); // Clients session id
 
     // TODO: Store session id & uid in database for logging
-    // TODO: IP Bind authentication to prevent spoofing and other errors
     
     logger.info('Client authenticated', { uid: data.client.uid, session_id: data.client.id, remoteAddress: data.client.remoteAddress })
 
     data.client.write('authenticated');   
 }
 
-module.exports.PlayerUnauthenticate = (data, next) => {
+module.exports.PlayerUnauthenticate = (data) => {
     logger.info('Client unauthenticated', { uid: data.client.uid, session_id: data.client.id})
     let i = authenticated.findIndex(a => a.session_id == data.client.id && a.remoteAddress == data.client.remoteAddress);
     authenticated.splice(i, 1);
