@@ -94,7 +94,7 @@ module.exports.LeaveMatchmaking = (data) => {
     let index = clients.findIndex(c => c.id == data.client.id);
     clients.splice(index, 1);
 
-    worker.send({event: "player.remove", client: data.client})
+    worker.send({event: "player.remove", client: data.client.id})
 
     // TODO: send to all players in party that matchmaking has stopped if with party and party leader
     data.client.write('matchmaking.stopped');
