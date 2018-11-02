@@ -11,13 +11,12 @@ logger.info('Setting up Player routes')
 
 // All clients are referenced by their session id NOT THEIR UID incase we don't require authentication
 
-// TODO: Middleware implementation for is user authenticated etc?
-
 // All sockets should have an identification ID after this point.
 socket.on('client.message.authenticate', PlayerAuth.PlayerAuthentication);
 
 // All sockets should be authenticated after this point
 socket.on('client.disconnect', PlayerAuth.IsAuthenticated, PartyController.LeaveParty)
+socket.on('client.disconnect', PlayerAuth.IsAuthenticated, Matchmaker.LeaveMatchmaking)
 
 socket.on('client.message.joinMatchmaking', PlayerAuth.IsAuthenticated, Matchmaker.JoinMatchmaking)
 
