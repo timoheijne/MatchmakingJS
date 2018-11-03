@@ -32,12 +32,13 @@ process.on('message', message => {
     }
 })
 
-function FindMatch() {
+function FindMatch(client) {
     if(clients.length == 0) return;
 
     let cCopy = clients.slice(0); // Get a copy incase the array gets edited mid search
-    let first = cCopy.shift();
-    let mType = MatchTypes[first.match_type]
+    cCopy.splice(cCopy.indexOf(client), 1); // Remove current client from list
+
+    let mType = MatchTypes[client.match_type]
 
     if (cCopy.length == 0) return; // We can't make a match if there are no others...
 
@@ -47,18 +48,19 @@ function FindMatch() {
 
     let lobby = {
         match_type: mType,
-        teams: {}
+        players: [client]
     }
 
-    let matches = [first]; // The first is always a match :D
-    cCopy.forEach(client => {
+    let matches = [client]; // The first is always a match :D
+    cCopy.forEach(c => {
         // Verify if client can join (max elo difference, party and other match type options)
         // Calculate Match Rate
 
-        client.score = CalculateMatchScore(first, client);
-        if(client.score == -1) continue; // In the process of calculating we've encountered something which makes this client unfit for this match.
+        c.score = CalculateMatchScore(client, c);
 
-        matches.push(client);
+        // In the process of calculating we've encountered something which makes this client unfit for this match.
+        if(c.score != -1)
+            matches.push(c);
     });
 
     if(!HasEnoughPlayers(lobby, matches)) return;
@@ -66,13 +68,36 @@ function FindMatch() {
     SortMatches(matches);
     // TODO: Implement Score maximum (a high score = bad)
 
-    // Dividing teams is done on the game server's side...
+    const requiredPlayers = GetRequiredPlayers(lobby.match_type);
 
+    for (let i = 0; i < matches.length; i++) {
+        const match = matches[i];
+        let nPlayers = CountPlayers(lobby.players);
+
+        if (HasEnoughPlayers(lobby, lobby.players)) break;
+
+        // There is room left yo
+        let pCount = match.clients.length;
+        if (nPlayers + pCount <= requiredPlayers) {
+            lobby.players.push(match)
+        }
+    }
+
+    logger.info('Match has been made', {lobby: lobby})
+
+    lobby.players.forEach(client => {
+        let index = clients.findIndex(client);
+        if (index == -1) return logger.info("Matchmaking failed, person pulled out mid match..");
+    });
     // Verify if all clients are still in matchmaking.. If not this is an invalid match...
 
-    // Send to master process that match has been made
+    logger.info('Match has been made', {lobby: lobby})
+    process.send({event: 'matchmaking.success', lobby: lobby})
 
-    // Remove client from clients list
+    lobby.players.forEach(client => {
+        let index = clients.findIndex(client);
+        clients.splice(index, 1);
+    });
 }
 
 function SortMatches(matches) {
@@ -82,8 +107,8 @@ function SortMatches(matches) {
     })
 }
 
-function CountPlayers(matches) {
-    let num = matches.reduce((acc, cur) => {
+function CountPlayers(c) {
+    let num = c.reduce((acc, cur) => {
         acc += cur.clients.length
     })
 
@@ -91,12 +116,17 @@ function CountPlayers(matches) {
 } 
 
 function HasEnoughPlayers(lobby, matches) {
-    let requiredPlayers;
-    lobby.match_type.TeamSizes.forEach(element => {
+    let requiredPlayers = GetRequiredPlayers(lobby.match_type)
+    return (CountPlayers(matches) >= requiredPlayers)
+}
+
+function GetRequiredPlayers(matchType) {
+    let requiredPlayers = 0;
+    matchType.TeamSizes.forEach(element => {
         requiredPlayers += element;
     });
 
-    return (CountPlayers(matches) >= requiredPlayers)
+    return requiredPlayers;
 }
 
 function CalculateMatchScore(first, second) { // Lower score = Better
@@ -117,7 +147,9 @@ function initMatchmaking() {
 
     matchmakingStep = setInterval(() => {
         // This is a matchmaking step.
-        FindMatch();
+        clients.forEach(c => {
+            FindMatch(c);
+        })
     }, 500); // We don't need a while true loop here, Search for a match every .5 of a second is more than enough
     // Also we can reduce this number and make players happy because "We've sped up the matchmaking process" by doing absolutely nothing to the algorithm *cough*
 }
