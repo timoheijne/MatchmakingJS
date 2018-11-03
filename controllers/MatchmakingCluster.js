@@ -51,7 +51,7 @@ function FindMatch(client) {
 
     let matches = [client]; // The first is always a match :D
     cCopy.forEach(c => {
-        // Verify if client can join (max elo difference, party and other match type options)
+        // TODO: Verify if client can join (max elo difference, party and other match type options)
         // Calculate Match Rate
 
         c.score = CalculateMatchScore(client, c);
