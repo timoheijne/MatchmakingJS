@@ -15,7 +15,6 @@ process.on('message', message => {
 
     if(event ==  "matchmaking.start") {
         message.clientData.timestamp_start = new Date().getTime();
-        console.log(message.clientData.timestamp_start );
         clients.push(message.clientData);
         initMatchmaking();
     }
@@ -28,8 +27,7 @@ process.on('message', message => {
         clients.splice(clients.indexOf(clientData), 1);
 
         if(clients.length == 0) {
-            clearInterval(matchmakingStep);
-            matchmakingStep = null;
+            stopMatchmaking();
         }
     }
 })
@@ -57,18 +55,18 @@ function FindMatch() {
         // Verify if client can join (max elo difference, party and other match type options)
         // Calculate Match Rate
 
-        client.score = CalculateMatchScore(first, client)
+        client.score = CalculateMatchScore(first, client);
         if(client.score == -1) continue; // In the process of calculating we've encountered something which makes this client unfit for this match.
+
         matches.push(client);
     });
 
-    if(!CanContinue(lobby, matches)) return;
+    if(!HasEnoughPlayers(lobby, matches)) return;
 
     SortMatches(matches);
-    // TODO: Implement Score maximum
+    // TODO: Implement Score maximum (a high score = bad)
 
-    DivideTeams(lobby, matches);
-    // Assign teams based on best value
+    // Dividing teams is done on the game server's side...
 
     // Verify if all clients are still in matchmaking.. If not this is an invalid match...
 
@@ -84,10 +82,6 @@ function SortMatches(matches) {
     })
 }
 
-function DivideTeams(lobby, matches) {
-    
-}
-
 function CountPlayers(matches) {
     let num = matches.reduce((acc, cur) => {
         acc += cur.clients.length
@@ -96,7 +90,7 @@ function CountPlayers(matches) {
     return num;
 } 
 
-function CanContinue(lobby, matches) {
+function HasEnoughPlayers(lobby, matches) {
     let requiredPlayers;
     lobby.match_type.TeamSizes.forEach(element => {
         requiredPlayers += element;
@@ -111,6 +105,11 @@ function CalculateMatchScore(first, second) { // Lower score = Better
     score += second.clients.length * 150;
 
     return score;
+}
+
+function stopMatchmaking() {
+    clearInterval(matchmakingStep);
+    matchmakingStep = null;
 }
 
 function initMatchmaking() {
