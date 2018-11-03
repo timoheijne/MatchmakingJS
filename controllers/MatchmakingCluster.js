@@ -22,8 +22,6 @@ process.on('message', message => {
     if(event == "player.remove") {
         let clientData = clients.find(c => c.clients.indexOf(message.client) != -1)
 
-        console.log(clients.indexOf(clientData), clients)
-
         clients.splice(clients.indexOf(clientData), 1);
 
         if(clients.length == 0) {
