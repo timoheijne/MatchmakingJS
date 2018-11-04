@@ -18,6 +18,10 @@ socket.on('data', (data) => {
         socket.write('authenticate');
 
     if(d[0] == "authenticated") {
+        socket.write('createParty')
+    }
+
+    if(d[0] == "party.create.success") {
         socket.write('joinMatchmaking')
     }
 })
