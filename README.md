@@ -13,6 +13,7 @@ This project also doubles as a school assignment (that I created my self).
 - [Dispatcher](https://github.com/lghenk/MatchmakingJS/tree/master/controllers/dispatcher)
 - [TCP Routing (functionality of the dispatcher)](https://github.com/lghenk/MatchmakingJS/blob/master/routes/PlayerRoutes.js)
 - [The Unit Tests](https://github.com/lghenk/MatchmakingJS/tree/master/test)
+- [The matchmaking cluster](https://github.com/lghenk/MatchmakingJS/blob/master/controllers/MatchmakingCluster.js)
 
 ## Software Analysis 
 Most languages can handle TCP Sockets. I have sufficient proficiency in the following languages: C#, C++, JAVA & NodeJS(javascript)
@@ -42,7 +43,7 @@ Also because of its Non-Blocking IO operations makes this quite desirable for la
 | | Monday | Tuesday | Wednesday | Thursday | Friday |
 | --- | --- | --- | --- | --- | --- |
 |Week 1 | Start Development Matchmaking | Finish Step 1 & start step 2 | -> | Finish Step 2 | ->
-|Week 2 | Finish step 2 & start step 3 | -> | Turn in assignment to school and start step 4 |
+|Week 2 | Finish step 2 & start step 3 | -> | Turn in assignment to school and start step 4 | Write portfolio item | Turn in post-mortem form for school
 
 ### Step 1
 - Start working out how this system should work exactly (mostly done in my head)
